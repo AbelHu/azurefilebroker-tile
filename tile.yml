@@ -32,7 +32,6 @@ packages:
     cf delete-quota -f azure-file-broker-org-quota
   manifest:
     path: resources/azurefilebroker.zip
-    # command: azurefilebroker --logLevel="$LOGLEVEL" --listenAddr="0.0.0.0:$PORT" --serviceName="$SERVICENAME" --serviceID="azurefilebroker" --environment="$ENVIRONMENT" --defaultOptions="$DEFAULTOPTIONS" --dbDriver="$DBDRIVERNAME" --dbCACert="$DBCACERT" --hostNameInCertificate="$HOSTNAMEINCERTIFICATE" --cfServiceName="$DBSERVICENAME" --dbHostname="$DBHOST" --dbPort="$DBPORT" --dbName="$DBNAME" --tenantID="$TENANTID" --clientID="$CLIENTID" --clientSecret="$CLIENTSECRET" --defaultSubscriptionID="$DEFAULTSUBSCRIPTIONID" --defaultResourceGroupName="$DEFAULTRESOURCEGROUPNAME" --defaultLocation="$DEFAULTLOCATION" --allowCreateStorageAccount="$ALLOWCREATESTORAGEACCOUNT" --allowCreateFileShare="$ALLOWCREATEFILESHARE" --allowDeleteStorageAccount="$ALLOWDELETESTORAGEACCOUNT" --allowDeleteFileShare="$ALLOWDELETEFILESHARE"
     buildpack: binary_buildpack
     instances: 1
 
@@ -65,317 +64,181 @@ forms:
       type: boolean
       configurable: true
       default: true
-    - name: system_environment
-      label: Select the environment
-      description: This section determines which SMB shares you would like to use
-      type: selector
+    - name: servicename
+      label: Service Name
+      description: Enter the version of the Service Broker App (Final app name would include app version like ${appName}-${appversion}
+      type: string
+      configurable: false
+      default: smbvolume
+    - name: loglevel
+      label: LogLevel
+      description: The log level of the broker
+      type: dropdown_select
       configurable: true
-      default: preexisting
+      default: info
+      options:
+        - name: error
+          label: error
+        - name: warn
+          label: warn
+        - name: info
+          label: info
+        - name: debug
+          label: debug
+    - name: environment
+      label: Environment
+      description: Select the environment you would like to use
+      type: dropdown_select
+      configurable: true
+      default: Preexisting
       freeze_on_deploy: true
-      option_templates:
-        - name: preexisting_option
-          select_value: preexisting
-          label: Using preexisting SMB shares
-          named_manifests:
-          - manifest: Preexisting
-            name: environment
-          - manifest: ''
-            name: tenant_id
-          - manifest: ''
-            name: client_id
-          - manifest: ''
-            name: client_secret
-          - manifest: ''
-            name: default_subscription_id
-          - manifest: ''
-            name: default_resource_group_name
-          - manifest: ''
-            name: default_location
-          - manifest: false
-            name: allow_create_storage_account
-          - manifest: false
-            name: allow_create_file_shares
-          - manifest: false
-            name: allow_delete_storage_account
-          - manifest: false
-            name: allow_delete_file_shares
-        - name: azure_option
-          select_value: azure
-          label: Using Azure File Service
-          named_manifests:
-          - manifest: (( .properties.system_environment.azure.environment.value ))
-            name: environment
-          - manifest: (( .properties.system_environment.azure.tenant_id.value ))
-            name: tenant_id
-          - manifest: (( .properties.system_environment.azure.client_id.value ))
-            name: client_id
-          - manifest: (( .properties.system_environment.azure.client_secret.value ))
-            name: client_secret
-          - manifest: (( .properties.system_environment.azure.default_subscription_id.value ))
-            name: default_subscription_id
-          - manifest: (( .properties.system_environment.azure.default_resource_group_name.value ))
-            name: default_resource_group_name
-          - manifest: (( .properties.system_environment.azure.default_location.value ))
-            name: default_location
-          - manifest: (( .properties.system_environment.azure.allow_create_storage_account.value ))
-            name: allow_create_storage_account
-          - manifest: (( .properties.system_environment.azure.allow_create_file_shares.value ))
-            name: allow_create_file_shares
-          - manifest: (( .properties.system_environment.azure.allow_delete_storage_account.value ))
-            name: allow_delete_storage_account
-          - manifest: (( .properties.system_environment.azure.allow_delete_file_shares.value ))
-            name: allow_delete_file_shares
-          property_blueprints:
-          - name: environment
-            label: Azure Cloud Environment
-            description: Environment of Azure Cloud
-            type: dropdown_select
-            default: Azure
-            configurable: true
-            options:
-            - name: Azure
-              label: Azure Global Cloud
-            - name: AzureChinaCloud
-              label: Azure China Cloud
-            - name: AzureUSGovernment
-              label: Azure US Goverment Cloud
-            - name: AzureGermanCloud
-              label: Azure German Cloud
-          - name: tenant_id
-            label: Tenant ID
-            description: The tenant id for your service principal
-            type: string
-            configurable: true
-          - name: client_id
-            label: Client ID
-            description: The client id for your service principal
-            configurable: true
-            type: string
-          - name: client_secret
-            label: Client Secret
-            description: The client secret for your service principal
-            type: secret
-            configurable: true
-          - name: default_subscription_id
-            label: Default Subscription ID
-            description: The default Azure Subscription id to use for storage accounts
-            type: string
-            configurable: true
-          - name: default_resource_group_name
-            label: Default Resource Group Name
-            description: The default resource group name to use for storage accounts
-            type: string
-            configurable: true
-          - name: default_location
-            label: Default Location
-            description: The default location to use for creating storage accounts
-            type: string
-            configurable: true
-          - name: allow_create_storage_account
-            label: Allow Create Storage Account
-            description: Allow Broker to create storage accounts
-            type: boolean
-            configurable: true
-            default: true
-          - name: allow_create_file_shares
-            label: Allow Create File Shares
-            description: Allow Broker to create file shares
-            type: boolean
-            configurable: true
-            default: true
-          - name: allow_delete_storage_account
-            label: Allow Delete Storage Account
-            description: Allow Broker to delete storage accounts which are created by Broker
-            type: boolean
-            configurable: true
-            default: true
-          - name: allow_delete_file_shares
-            label: Allow Delete File Share
-            description: Allow Broker to delete file shares which are created by Broker
-            type: boolean
-            configurable: true
-            default: true
+      options:
+        - name: Preexisting
+          label: Preexisting SMB Shares
+        - name: Azure
+          label: Azure Global Cloud
+        - name: AzureChinaCloud
+          label: Azure China Cloud
+        - name: AzureUSGovernment
+          label: Azure US Goverment Cloud
+        - name: AzureGermanCloud
+          label: Azure German Cloud
+    - name: tenantid
+      label: Tenant ID
+      description: The tenant id for your service principal. Required when 'Environment' is not 'Preexisting SMB Shares'
+      type: string
+      configurable: true
+      optional: true
+    - name: clientid
+      label: Client ID
+      description: The client id for your service principal. Required when 'Environment' is not 'Preexisting SMB Shares'
+      type: string
+      configurable: true
+      optional: true
+    - name: clientsecret
+      label: Client Secret
+      description: The client secret for your service principal. Required when 'Environment' is not 'Preexisting SMB Shares'
+      type: secret
+      configurable: true
+      optional: true
+    - name: defaultsubscriptionid
+      label: Default Subscription ID
+      description: The default Azure Subscription id to use for storage accounts. Required when 'Environment' is not 'Preexisting SMB Shares'
+      type: string
+      configurable: true
+      optional: true
+    - name: defaultresourcegroupname
+      label: Default Resource Group Name
+      description: The default resource group name to use for storage accounts. Available when 'Environment' is not 'Preexisting SMB Shares'
+      type: string
+      configurable: true
+      optional: true
+    - name: defaultlocation
+      label: Default Location
+      description: The default location to use for creating storage accounts. Available when 'Environment' is not 'Preexisting SMB Shares'
+      type: string
+      configurable: true
+      optional: true
+    - name: allowcreatestorageaccount
+      label: Allow Create Storage Account
+      description: Allow Broker to create storage accounts. Available when 'Environment' is not 'Preexisting SMB Shares'
+      type: boolean
+      configurable: true
+      default: true
+    - name: allowcreatefileshare
+      label: Allow Create File Share
+      description: Allow Broker to create file shares. Available when 'Environment' is not 'Preexisting SMB Shares'
+      type: boolean
+      configurable: true
+      default: true
+    - name: allowdeletestorageaccount
+      label: Allow Delete Storage Account
+      description: Allow Broker to delete storage accounts which are created by Broker. Available when 'Environment' is not 'Preexisting SMB Shares'
+      type: boolean
+      configurable: true
+      default: true
+    - name: allowdeletefileshare
+      label: Allow Delete File Share
+      description: Allow Broker to delete file shares which are created by Broker. Available when 'Environment' is not 'Preexisting SMB Shares'
+      type: boolean
+      configurable: true
+      default: true
 - name: db-config-form
   label: Database Config
   properties:
-  - name: dbdrivername
-    label: Database Driver
-    description: Database driver name to use SQL to store broker state
-    type: dropdown_select
-    configurable: true
-    freeze_on_deploy: true
-    options:
-    - name: mssql
-      label: MsSQL
-      default: true
-    - name: mysql
-      label: MySQL
-  - name: system_dbcacert
-    label: Using a customized CACert
-    description: Content of CA Cert to verify SSL connection
-    type: selector
-    configurable: true
-    default: none
-    freeze_on_deploy: true
-    option_templates:
-      - name: none_option
-        select_value: none
-        label: None
-        named_manifests:
-        - manifest: ""
-          name: dbcacert
-      - name: customized_option
-        select_value: customized
-        label: Customized CACert for the Database
-        named_manifests:
-        - manifest: (( .properties.system_dbcacert.customized_option.db_cacert.value ))
-          name: dbcacert
-        property_blueprints:
-          - name: db_cacert
-            label: Database CACert
-            description: Your customized CACert for your database
-            type: string
-            configurable: true
-  - name: hostnameincertificate
-    label: Host Name in Certificate 
-    description: |
-      For Azure SQL service or Azure MySQL service, you need to specify one of below values to enable TLS encryption. For your certificate, you need to specify the Common Name (CN) in the server certificate.AzureCloud:"*.database.windows.net", AzureUSGovernment:"*.database.usgovcloudapi.net", AzureChinaCloud:"*.database.chinacloudapi.cn", AzureGermanCloud:"*.database.cloudapi.de"
-    type: string
-  - name: system_db_provider
-    label: Select database provider
-    description: This section determines which database provider you would like to use
-    type: selector
-    configurable: true
-    default: service
-    freeze_on_deploy: true
-    option_templates:
-      - name: service_option
-        select_value: service
-        label: Using a database service provided by cloud foundry
-        named_manifests:
-        - manifest: ((.properties.system_db_provider.service.db_service_name.value))
-          name: db_service_name
-        - manifest: ''
-          name: db_hostname
-        - manifest: ''
-          name: db_port
-        - manifest: ''
-          name: db_name
-        - manifest: ''
-          name: db_username
-        - manifest: ''
-          name: db_password
-        property_blueprints:
-        - name: db_service_name
-          label: Cloud Foundry Service Name
-          description: For CF pushed apps, the service name in VCAP_SERVICES where we should find database credentials
-          type: string
-      - name: db_option
-        select_value: database
-        label: Using a external database
-        named_manifests:
-        - manifest: ''
-          name: db_service_name
-        - manifest: ((.properties.system_db_provider.database.db_hostname.value))
-          name: db_hostname
-        - manifest: ((.properties.system_db_provider.database.db_port.value))
-          name: db_port
-        - manifest: ((.properties.system_db_provider.database.db_name.value))
-          name: db_name
-        - manifest: ((.properties.system_db_provider.database.db_username.value))
-          name: db_username
-        - manifest: ((.properties.system_db_provider.database.db_password.value))
-          name: db_password
-        property_blueprints:
-        - name: db_hostname
-          label: Database Hostname
-          description: Database hostname when using SQL to store broker state
-          type: string
-        - name: db_port
-          label: Database Port
-          description: Database port when using SQL to store broker state
-          type: string
-        - name: db_name
-          label: Database Name
-          description: Database name when using SQL to store broker state
-          type: string
-        - name: db_username
-          label: Database Username
-          description: Database username when using SQL to store broker state
-          type: string
-        - name: db_password
-          label: Database Password
-          description: Database password when using SQL to store broker state
-          type: secret
+    - name: dbdrivername
+      label: Database Driver
+      description: Database driver name to use SQL to store broker state
+      type: dropdown_select
+      configurable: true
+      options:
+      - name: mssql
+        label: MsSQL
+        default: true
+      - name: mysql
+        label: MySQL
+    - name: dbcacert
+      label: Database CACert
+      description: Content of CA Cert to verify SSL connection
+      type: string
+      configurable: true
+      optional: true
+    - name: hostnameincertificate
+      label: Host Name in Certificate 
+      description: For Azure SQL service or Azure MySQL service, you need to specify one of below values to enable TLS encryption. For your certificate, you need to specify the Common Name (CN) in the server certificate.AzureCloud:"*.database.windows.net", AzureUSGovernment:"*.database.usgovcloudapi.net", AzureChinaCloud:"*.database.chinacloudapi.cn", AzureGermanCloud:"*.database.cloudapi.de"
+      type: string
+      configurable: true
+    - name: dbservicename
+      label: Cloud Foundry Service Name
+      description: For CF pushed apps, the service name in VCAP_SERVICES where we should find database credentials
+      type: string
+      configurable: true
+      optional: true
+    - name: dbhost
+      label: Database Hostname
+      description: Database hostname when using SQL to store broker state. Required when 'Cloud Foundry Service Name' is empty
+      type: string
+      configurable: true
+      optional: true
+    - name: dbport
+      label: Database Port
+      description: Database port when using SQL to store broker state. Required when 'Cloud Foundry Service Name' is empty
+      type: string
+      configurable: true
+      optional: true
+    - name: dbname
+      label: Database Name
+      description: Database name when using SQL to store broker state. Required when 'Cloud Foundry Service Name' is empty
+      type: string
+      configurable: true
+      optional: true
+    - name: dbusername
+      label: Database Username
+      description: Database username when using SQL to store broker state. Required when 'Cloud Foundry Service Name' is empty
+      type: string
+      configurable: true
+      optional: true
+    - name: dbpassword
+      label: Database Password
+      description: Database password when using SQL to store broker state. Required when 'Cloud Foundry Service Name' is empty
+      type: secret
+      configurable: true
+      optional: true
 - name: bind-config-form
   label: Bind Config
   properties:
-  - name: allowedoptions
-    label: Allowed Options
-    description: A comma separated list of parameters allowed to be set in during bind operations
-    type: string
-    default: share,uid,gid,file_mode,dir_mode,readonly,vers,mount,domain,username,password,sec
-  - name: defaultoptions
-    label: Default Options
-    description: A comma separated list of defaults specified as param:value. If a parameter has a default value and is not in the allowed list, this default value becomes a fixed value that cannot be overridden
-    type: string
-    default: vers:3.0
-
-properties:
-- name: loglevel
-  type: string
-  default: info
-- name: environment
-  type: string
-  value: ((.properties.system_environment.selected_option.parsed_manifest(environment)))
-- name: tenantid
-  type: string
-  value: ((.properties.system_environment.selected_option.parsed_manifest(tenant_id)))
-- name: clientid
-  type: string
-  value: ((.properties.system_environment.selected_option.parsed_manifest(client_id)))
-- name: clientsecret
-  type: string
-  value: ((.properties.system_environment.selected_option.parsed_manifest(client_secret)))
-- name: defaultsubscriptionid
-  type: string
-  value: ((.properties.system_environment.selected_option.parsed_manifest(default_subscription_id)))
-- name: defaultresourcegroupname
-  type: string
-  value: ((.properties.system_environment.selected_option.parsed_manifest(default_resource_group_name)))
-- name: defaultlocation
-  type: string
-  value: ((.properties.system_environment.selected_option.parsed_manifest(default_location)))
-- name: allowcreatestorageaccount
-  type: boolean
-  value: ((.properties.system_environment.selected_option.parsed_manifest(allow_create_storage_account)))
-- name: allowcreatefileshare
-  type: boolean
-  value: ((.properties.system_environment.selected_option.parsed_manifest(allow_create_file_share)))
-- name: allowdeletestorageaccount
-  type: boolean
-  value: ((.properties.system_environment.selected_option.parsed_manifest(allow_delete_storage_account)))
-- name: allowdeletefileshare
-  type: boolean
-  value: ((.properties.system_environment.selected_option.parsed_manifest(allow_delete_file_share)))
-- name: dbservicename
-  type: string
-  value: ((.properties.system_db_provider.selected_option.parsed_manifest(db_service_name)))
-- name: dbhostname
-  type: string
-  value: ((.properties.system_db_provider.selected_option.parsed_manifest(db_hostname)))
-- name: dbport
-  type: string
-  value: ((.properties.system_db_provider.selected_option.parsed_manifest(db_port)))
-- name: dbname
-  type: string
-  value: ((.properties.system_db_provider.selected_option.parsed_manifest(db_name)))
-- name: dbusername
-  type: string
-  value: ((.properties.system_db_provider.selected_option.parsed_manifest(db_username)))
-- name: dbpassword
-  type: string
-  value: ((.properties.system_db_provider.selected_option.parsed_manifest(db_password)))
+    - name: allowedoptions
+      label: Allowed Options
+      description: A comma separated list of parameters allowed to be set in during bind operations
+      type: string
+      configurable: true
+      default: share,uid,gid,file_mode,dir_mode,readonly,vers,mount,domain,username,password,sec
+    - name: defaultoptions
+      label: Default Options
+      description: A comma separated list of defaults specified as param:value. If a parameter has a default value and is not in the allowed list, this default value becomes a fixed value that cannot be overridden
+      type: string
+      configurable: true
+      default: vers:3.0
 
 # Add any dependencies your tile has on other installed products.
 # This is often appropriate when using automatic service provisioning
