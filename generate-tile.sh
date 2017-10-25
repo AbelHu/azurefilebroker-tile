@@ -1,7 +1,9 @@
 #!/bin/bash
 set +e +x
 
-rm -f resources/azurefilebroker.zip
+TARGET=$PWD/resources/azurefilebroker.zip
+
+rm -f $TARGET
 rm -fr smb-volume-release
 
 git clone https://github.com/cloudfoundry/smb-volume-release.git
@@ -12,8 +14,9 @@ pushd smb-volume-release
   ./scripts/build-broker
 popd
 
-DSTPATH=smb-volume-release/src/github.com/cloudfoundry/azurefilebroker
-zip -j resources/azurefilebroker.zip $DSTPATH/bin/azurefilebroker $DSTPATH/manifest.yml $DSTPATH/Procfile
+pushd smb-volume-release/src/github.com/cloudfoundry/azurefilebroker
+  zip -r $TARGET bin/azurefilebroker Procfile
+popd
 
 if [ "$1" = "-major" ]; then
   tile build major
