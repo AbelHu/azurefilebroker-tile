@@ -239,6 +239,21 @@ forms:
       type: string
       configurable: true
       default: vers:3.0
+- name: smb-driver-config-form
+  label: SMB Driver Config
+  properties:
+    - name: mountflagallowed
+      label: Mount Flag Allowed
+      description: A comma separted list of parameters allowed to be send in extra config. Each of this parameters can be specify by brokers
+      type: string
+      configurable: true
+      default: username,password,uid,gid,file_mode,dir_mode,readonly,domain,vers,sec
+    - name: mountflagdefault
+      label: Mount Flag Default
+      description: A comma separted list of like params:value. This list specifies default value of parameters.
+      type: string
+      configurable: true
+      default: uid:2000,gid:2000
 
 # Add any dependencies your tile has on other installed products.
 # This is often appropriate when using automatic service provisioning
@@ -248,6 +263,7 @@ forms:
 # requires_product_versions:
 # - name: p-mysql
 #   version: '~> 1.7'
+
 provides_product_versions:
 - name: azurefilebroker
   version: '1.0.0'
@@ -259,3 +275,29 @@ provides_product_versions:
 #   canary_watch_time: 10000-100000
 #   max_in_flight: 1
 #   update_watch_time: 10000-100000
+
+releases:
+  - name: smb-volume
+    file: os-conf
+    version: '15'
+
+runtime_configs:
+  - name: smb-driver-runtime-config
+    runtime_config: |
+      releases:
+      - name: smb-volume
+        version: '15'
+      addons:
+      - name: voldrivers
+        include:
+          deployments:
+          - ((cf.deployment))
+          jobs:
+          - name: rep
+            release: diego
+        jobs:
+        - name: smbdriver
+          release: smb-volume
+          properties:
+            allowed-in-mount: ((.properties.mountflagallowed))
+            default-in-mount: ((.properties.mountflagdefault))
